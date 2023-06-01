@@ -1,62 +1,81 @@
-﻿using TodoList.Domain.Common.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using TodoList.Domain.Common.Entities;
 using TodoList.Domain.Common.Interfaces;
 
 namespace TodoList.Infrastructure.Context;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 {
-	public Task AddEntity(T entity)
+	private readonly ApplicationDbContext _context;
+	private readonly DbSet<T> _dbSet;
+
+	public async Task AddEntity(T entity)
 	{
-		throw new NotImplementedException();
+		entity.CreateDate = DateTime.Now;
+		entity.LastUpdateDate = entity.CreateDate;
+		await _dbSet.AddAsync(entity);
 	}
 
-	public Task AddRangeEntities(List<T> entities)
+	public async Task AddRangeEntities(List<T> entities)
 	{
-		throw new NotImplementedException();
+		foreach (var entity in entities)
+		{
+			await AddEntity(entity);
+		}
 	}
 
-	public void DeleteEntity(T entity)
+	public async Task<T> GetEntityById(long entityId)
 	{
-		throw new NotImplementedException();
+		return await _dbSet.SingleOrDefaultAsync(x => x.Id == entityId);
 	}
 
-	public Task DeleteEntity(long entityId)
+	public async Task<List<T>> GetAllEntities()
 	{
-		throw new NotImplementedException();
-	}
-
-	public void DeletePermanent(T entity)
-	{
-		throw new NotImplementedException();
-	}
-
-	public Task DeletePermanent(long entityId)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ValueTask DisposeAsync()
-	{
-		throw new NotImplementedException();
-	}
-
-	public void EditEntity(T entity)
-	{
-		throw new NotImplementedException();
-	}
-
-	public Task<List<T>> GetAllEntities()
-	{
-		throw new NotImplementedException();
+		return await _dbSet.ToListAsync();
 	}
 
 	public IQueryable<T> GetQuery()
 	{
-		throw new NotImplementedException();
+		return _dbSet.AsQueryable();
 	}
 
-	public Task SaveChanges()
+	public void EditEntity(T entity)
 	{
-		throw new NotImplementedException();
+		entity.LastUpdateDate = DateTime.Now;
+		_dbSet.Update(entity);
+	}
+
+	public void DeleteEntity(T entity)
+	{
+		entity.LastUpdateDate = DateTime.Now;
+		entity.IsDeleted = true;
+		EditEntity(entity);
+	}
+
+	public async Task DeleteEntity(long entityId)
+	{
+		T entity = await GetEntityById(entityId);
+		if (entity != null) DeleteEntity(entity);
+	}
+
+	public void DeletePermanent(T entity)
+	{
+		_dbSet.Remove(entity);
+	}
+
+	public async Task DeletePermanent(long entityId)
+	{
+		T entity = await GetEntityById(entityId);
+		if (entity != null) DeletePermanent(entity);
+	}
+
+	public async Task SaveChanges()
+	{
+		await _context.SaveChangesAsync();
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_context != null) await _context.DisposeAsync();
 	}
 }

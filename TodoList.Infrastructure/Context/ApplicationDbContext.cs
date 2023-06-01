@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TodoList.Domain.Todo.Entities;
-using TodoList.Domain.User.Entities;
+using TodoList.Domain.TodoAggregate.Entities;
+using TodoList.Domain.UserAggregate.Entities;
 
 namespace TodoList.Infrastructure.Context;
 
