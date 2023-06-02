@@ -9,7 +9,13 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 	private readonly ApplicationDbContext _context;
 	private readonly DbSet<T> _dbSet;
 
-	public async Task AddEntity(T entity)
+    public GenericRepository(ApplicationDbContext context)
+    {
+        _context = context;
+		_dbSet = _context.Set<T>();
+    }
+
+    public async Task AddEntity(T entity)
 	{
 		entity.CreateDate = DateTime.Now;
 		entity.LastUpdateDate = entity.CreateDate;
@@ -56,17 +62,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 	{
 		T entity = await GetEntityById(entityId);
 		if (entity != null) DeleteEntity(entity);
-	}
-
-	public void DeletePermanent(T entity)
-	{
-		_dbSet.Remove(entity);
-	}
-
-	public async Task DeletePermanent(long entityId)
-	{
-		T entity = await GetEntityById(entityId);
-		if (entity != null) DeletePermanent(entity);
 	}
 
 	public async Task SaveChanges()

@@ -12,7 +12,5 @@ public interface IGenericRepository<T> : IAsyncDisposable where T : BaseEntity
 	void EditEntity(T entity);
 	void DeleteEntity(T entity);
 	Task DeleteEntity(long entityId);
-	void DeletePermanent(T entity);
-	Task DeletePermanent(long entityId);
 	Task SaveChanges();
 }
