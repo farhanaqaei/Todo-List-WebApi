@@ -1,9 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using TodoList.Application.UserServices.Interfaces;
 using TodoList.Domain.UserAggregate.Dtos;
 using TodoList.Domain.UserAggregate.Entities;
@@ -12,51 +8,72 @@ namespace TodoList.WebApi.Controllers;
 
 public class UserController : Controller
 {
+	private readonly UserManager<User> _userManager;
 	private readonly IUserService _userService;
-	private readonly IConfiguration _config;
+	private readonly ITokenService _tokenService;
 
-	public UserController(IUserService userService, IConfiguration config)
+	public UserController
+		(
+		IUserService userService,
+		IConfiguration config,
+		UserManager<User> userManager,
+		ITokenService tokenService
+		)
 	{
 		_userService = userService;
-		_config = config;
+		_userManager = userManager;
+		_tokenService = tokenService;
 	}
 
 	[HttpPost("register")]
-	public async Task<IActionResult> Register(RegisterUserDTO input)
+	public async Task<IActionResult> RegisterByIdentity([FromBody] RegisterUserDTO input)
 	{
 		if (!ModelState.IsValid)
 		{
 			return BadRequest(ModelState);
 		}
-		var result = await _userService.RegisterUser(input);
-		return Ok(result);
+
+		var result = await _userManager.CreateAsync(new User
+		{
+			UserName = input.Email,
+			FullName = input.FullName,
+			Email = input.Email
+		}, input.Password);
+
+		if (result.Succeeded) return Ok(result);
+
+		return BadRequest(ModelState);
 	}
 
 	[HttpPost("login")]
-	public async Task<IActionResult> Login(LoginUserDTO input)
+	public async Task<IActionResult> LoginByIdentity([FromBody] LoginUserDTO input)
 	{
-		var user = await _userService.GetUserForLogin(input);
-		if (user.IsSucceeded)
+		if (!ModelState.IsValid)
 		{
-			var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("SecretKey").Value));
-			var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-			var claims = new List<Claim>
-			{
-				new Claim(ClaimTypes.Name, user.Data.FullName),
-				new Claim(ClaimTypes.Email, input.Email)
-			};
-
-			var tokenOptions = new JwtSecurityToken(
-				issuer: _config.GetSection("ValidIssuer").Value,
-				audience: _config.GetSection("ValidAudience").Value,
-				claims: claims,
-				expires: DateTime.Now.AddMinutes(1),
-				signingCredentials: signingCredentials
-				);
-			var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-			return Ok(new LoginResultDTO { Token = tokenString });
+			return BadRequest(ModelState);
 		}
-		return Unauthorized();
+
+		var managedUser = await _userManager.FindByEmailAsync(input.Email);
+
+		if (managedUser == null)
+		{
+			return BadRequest("Bad credentials");
+		}
+
+		var isPasswordValid = await _userManager.CheckPasswordAsync(managedUser, input.Password);
+
+		if (!isPasswordValid)
+		{
+			return BadRequest("Bad credentials");
+		}
+
+		var user = await _userService.GetUserByEmail(input.Email);
+
+		if (user.Succeeded == false)
+			return Unauthorized();
+
+		var accessToken = _tokenService.CreateToken(user.Data);
+
+		return Ok(new LoginResultDTO { Token = accessToken });
 	}
 }

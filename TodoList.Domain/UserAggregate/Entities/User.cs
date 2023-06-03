@@ -1,20 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using TodoList.Domain.Common.Entities;
+using TodoList.Domain.Common.Interfaces;
 using TodoList.Domain.TodoAggregate.Entities;
 
 namespace TodoList.Domain.UserAggregate.Entities;
 
-public class User : BaseEntity
+public class User : CustomIdentityUser
 {
-    [Required]
+	[Required]
     public string FullName { get; set; }
-
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; }
-
-    [Required]
-    public string Password { get; set; }
 
     public ICollection<Todo> Todos { get; set; }
 }

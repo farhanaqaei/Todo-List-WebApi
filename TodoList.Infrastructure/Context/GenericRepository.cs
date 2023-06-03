@@ -4,7 +4,7 @@ using TodoList.Domain.Common.Interfaces;
 
 namespace TodoList.Infrastructure.Context;
 
-public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
+public class GenericRepository<T> : IGenericRepository<T> where T : class, IBaseEntity
 {
 	private readonly ApplicationDbContext _context;
 	private readonly DbSet<T> _dbSet;

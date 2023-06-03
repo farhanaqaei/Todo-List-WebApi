@@ -1,7 +1,3 @@
-using TodoList.Application.UserServices.Implementations;
-using TodoList.Application.UserServices.Interfaces;
-using TodoList.Domain.Common.Interfaces;
-using TodoList.Infrastructure.Context;
 using TodoList.Infrastructure.IOC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,11 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext(builder.Configuration);
-builder.Services.AddJWtAuthentication(builder.Configuration);
-builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddTransient<IPasswordHelper, PasswordHelper>();
+builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();
 

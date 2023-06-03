@@ -2,7 +2,7 @@
 
 namespace TodoList.Domain.Common.Interfaces;
 
-public interface IGenericRepository<T> : IAsyncDisposable where T : BaseEntity
+public interface IGenericRepository<T> : IAsyncDisposable where T : IBaseEntity
 {
 	Task AddEntity(T entity);
 	Task AddRangeEntities(List<T> entities);
