@@ -35,11 +35,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IBase
 		return await _dbSet.SingleOrDefaultAsync(x => x.Id == entityId);
 	}
 
-	public async Task<List<T>> GetAllEntities()
-	{
-		return await _dbSet.ToListAsync();
-	}
-
 	public IQueryable<T> GetQuery()
 	{
 		return _dbSet.AsQueryable();

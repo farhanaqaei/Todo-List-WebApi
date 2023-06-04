@@ -7,7 +7,6 @@ public interface IGenericRepository<T> : IAsyncDisposable where T : IBaseEntity
 	Task AddEntity(T entity);
 	Task AddRangeEntities(List<T> entities);
 	Task<T> GetEntityById(long entityId);
-	Task<List<T>> GetAllEntities();
 	IQueryable<T> GetQuery();
 	void EditEntity(T entity);
 	void DeleteEntity(T entity);
