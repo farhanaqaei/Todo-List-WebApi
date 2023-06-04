@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TodoList.Application.TodoServices.Implementations;
+using TodoList.Application.TodoServices.Interfaces;
 using TodoList.Application.UserServices.Implementations;
 using TodoList.Application.UserServices.Interfaces;
 using TodoList.Domain.Common.Interfaces;
@@ -23,6 +25,7 @@ public static class ConfigServiceCollectionExtension
 
 		services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 		services.AddScoped<IUserService, UserService>();
+		services.AddScoped<ITodoService, TodoService>();
 		services.AddScoped<ITokenService, TokenService>();
 	}
 

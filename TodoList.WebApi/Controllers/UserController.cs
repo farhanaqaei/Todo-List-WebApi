@@ -6,6 +6,7 @@ using TodoList.Domain.UserAggregate.Entities;
 
 namespace TodoList.WebApi.Controllers;
 
+[Route("user")]
 public class UserController : Controller
 {
 	private readonly UserManager<User> _userManager;
