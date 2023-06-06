@@ -11,5 +11,5 @@ public class User : CustomIdentityUser
 	[Required]
     public string FullName { get; set; }
 
-    public ICollection<Todo> Todos { get; set; }
+    public ICollection<Todo>? Todos { get; set; }
 }

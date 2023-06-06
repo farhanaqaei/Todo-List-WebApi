@@ -90,4 +90,10 @@ public class TodoService : ITodoService
 		await _todoRepository.SaveChanges();
 		return new ResultDTO<Todo> { Succeeded = true, Message = "task deleted successfully" };
 	}
+
+	public async ValueTask DisposeAsync()
+	{
+		await _todoRepository.DisposeAsync();
+		await _userRepository.DisposeAsync();
+	}
 }

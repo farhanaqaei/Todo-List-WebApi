@@ -9,7 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.Infrastructure", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.Application", "TodoList.Application\TodoList.Application.csproj", "{F452218C-E474-4402-A84E-074BEF0E1234}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoList.WebApi", "TodoList.WebApi\TodoList.WebApi.csproj", "{308676EF-90F4-460E-A4EE-EB49360F7C10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.WebApi", "TodoList.WebApi\TodoList.WebApi.csproj", "{308676EF-90F4-460E-A4EE-EB49360F7C10}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FCFEFE23-CF41-44CF-934A-7292518843DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoList.UnitTests", "TodoList.UnitTests\TodoList.UnitTests.csproj", "{2910F0C5-4352-47AC-AFB5-D9CCEFB8E2F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,9 +37,16 @@ Global
 		{308676EF-90F4-460E-A4EE-EB49360F7C10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{308676EF-90F4-460E-A4EE-EB49360F7C10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{308676EF-90F4-460E-A4EE-EB49360F7C10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2910F0C5-4352-47AC-AFB5-D9CCEFB8E2F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2910F0C5-4352-47AC-AFB5-D9CCEFB8E2F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2910F0C5-4352-47AC-AFB5-D9CCEFB8E2F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2910F0C5-4352-47AC-AFB5-D9CCEFB8E2F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2910F0C5-4352-47AC-AFB5-D9CCEFB8E2F6} = {FCFEFE23-CF41-44CF-934A-7292518843DE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6AE55FD7-20A5-4922-B329-CA5C8E8D53ED}

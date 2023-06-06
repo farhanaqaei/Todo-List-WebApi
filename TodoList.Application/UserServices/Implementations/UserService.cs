@@ -20,4 +20,9 @@ public class UserService : IUserService
 		var user = await _userRepository.GetQuery().FirstOrDefaultAsync(x => x.Email == email);
 		return new ResultDTO<User> { Data = user, Succeeded = true };
 	}
+
+	public async ValueTask DisposeAsync()
+	{
+		await _userRepository.DisposeAsync();
+	}
 }
