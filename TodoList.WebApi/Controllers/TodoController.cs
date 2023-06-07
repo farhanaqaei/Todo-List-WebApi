@@ -44,7 +44,7 @@ public class TodoController : Controller
 		return Ok(await _todoService.GetTasksByUserId(userId));
 	}
 
-	[HttpPost("update-task"), Authorize]
+	[HttpPatch("update-task"), Authorize]
 	public async Task<IActionResult> UpdateTask([FromBody]UpdateTaskDTO input)
 	{
 		try
@@ -59,7 +59,7 @@ public class TodoController : Controller
 		}		
 	}
 
-	[HttpPost("delete-task"), Authorize]
+	[HttpDelete("delete-task"), Authorize]
 	public async Task<IActionResult> DeleteTask([FromQuery]long todoId)
 	{
 		try
