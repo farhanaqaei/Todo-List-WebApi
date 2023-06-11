@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using TodoList.Infrastructure.IOC;
+using TodoList.WebApi.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,18 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddServices(builder.Configuration);
+
+builder.Services.AddAuthorization(options =>
+{
+	options.AddPolicy("TaskOwnershipPolicy", policy =>
+	{
+		policy.AddRequirements(new TaskOwnershipRequirement());
+		policy.RequireAuthenticatedUser();
+	});
+});
+
+builder.Services.AddScoped<IAuthorizationHandler, TaskOwnershipHandler>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

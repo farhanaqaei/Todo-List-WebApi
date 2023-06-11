@@ -44,12 +44,13 @@ public class TodoController : Controller
 		return Ok(await _todoService.GetTasksByUserId(userId));
 	}
 
-	[HttpPatch("update-task"), Authorize]
-	public async Task<IActionResult> UpdateTask([FromBody]UpdateTaskDTO input)
+	[HttpPatch("update-task/{todoId}")]
+	[Authorize(Policy = "TaskOwnershipPolicy")]
+	public async Task<IActionResult> UpdateTask(long todoId, [FromBody]UpdateTaskDTO input)
 	{
 		try
 		{
-			var updatedTask = await _todoService.UpdateTask(input, User.GetUserId());
+			var updatedTask = await _todoService.UpdateTask(input);
 			if (updatedTask.Succeeded) return Ok(updatedTask.Message);
 			return BadRequest(updatedTask.Data);
 		}
@@ -59,12 +60,13 @@ public class TodoController : Controller
 		}		
 	}
 
-	[HttpDelete("delete-task"), Authorize]
+	[HttpDelete("delete-task")]
+	[Authorize(Policy = "TaskOwnershipPolicy")]
 	public async Task<IActionResult> DeleteTask([FromQuery]long todoId)
 	{
 		try
 		{
-			var deletedTask = await _todoService.DeleteTask(todoId, User.GetUserId());
+			var deletedTask = await _todoService.DeleteTask(todoId);
 			if (deletedTask.Succeeded) return Ok(deletedTask.Message);
 			return BadRequest(deletedTask.Data);
 		}

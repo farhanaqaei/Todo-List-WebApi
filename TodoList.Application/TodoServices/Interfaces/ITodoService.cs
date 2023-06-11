@@ -11,6 +11,6 @@ public interface ITodoService
 	Task<ResultDTO<Todo>> GetTaskById(long id);
 	Task<ResultDTO<List<GetTodoResult>>> GetTasksByUserName(string userName);
 	Task<ResultDTO<List<GetTodoResult>>> GetTasksByUserId(long userId);
-	Task<ResultDTO<Todo>> UpdateTask(UpdateTaskDTO input, long userId);
-	Task<ResultDTO<Todo>> DeleteTask(long todoId, long userId);
+	Task<ResultDTO<Todo>> UpdateTask(UpdateTaskDTO input);
+	Task<ResultDTO<Todo>> DeleteTask(long todoId);
 }

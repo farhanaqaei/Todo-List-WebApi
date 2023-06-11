@@ -22,7 +22,7 @@ public class TodoConstructor
         var _testTodo = CreateTodo();
 
         // Assert
-        Assert.False(_testTodo.IsComplete);
+        Assert.False(_testTodo.IsCompleted);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class TodoConstructor
         Assert.Equal(userId, todo.UserId);
         Assert.Equal(title, todo.Title);
         Assert.Equal(description, todo.Description);
-        Assert.False(todo.IsComplete);
+        Assert.False(todo.IsCompleted);
     }
 
     [Fact]
@@ -55,10 +55,10 @@ public class TodoConstructor
         var todo = new Todo();
 
         // Act
-        todo.IsComplete = true;
+        todo.IsCompleted = true;
 
         // Assert
-        Assert.True(todo.IsComplete);
+        Assert.True(todo.IsCompleted);
     }
 
     [Fact]

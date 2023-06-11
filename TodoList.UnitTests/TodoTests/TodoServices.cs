@@ -64,7 +64,7 @@ public class TodoServices
 		var todoService = new TodoService(todoRepositoryMock.Object, userRepositoryMock.Object);
 
 		var taskId = 123;
-		var todo = new Todo { Id = taskId, UserId = 1, Title = "Task 1", Description = "Description 1", IsComplete = false };
+		var todo = new Todo { Id = taskId, UserId = 1, Title = "Task 1", Description = "Description 1", IsCompleted = false };
 		todoRepositoryMock.Setup(repo => repo.GetEntityById(taskId))
 			.ReturnsAsync(todo);
 
@@ -125,7 +125,7 @@ public class TodoServices
 			UserId = userId,
 			Title = "Sample Task",
 			Description = "Sample description",
-			IsComplete = false
+			IsCompleted = false
 		};
 		todoRepositoryMock.Setup(repo => repo.GetEntityById(todoId))
 			.ReturnsAsync(sampleTask);
@@ -136,7 +136,7 @@ public class TodoServices
 			.Returns(Task.CompletedTask);
 
 		// Act
-		var result = await todoService.DeleteTask(todoId, userId);
+		var result = await todoService.DeleteTask(todoId);
 
 		// Assert
 		Assert.True(result.Succeeded);
@@ -169,7 +169,7 @@ public class TodoServices
 			UserId = userId,
 			Title = "Sample Task",
 			Description = "Sample description",
-			IsComplete = false
+			IsCompleted = false
 		};
 		todoRepositoryMock.Setup(repo => repo.GetEntityById(todoId))
 			.ReturnsAsync(sampleTask);
@@ -179,7 +179,7 @@ public class TodoServices
 			.Returns(Task.CompletedTask);
 
 		// Act
-		var result = await todoService.UpdateTask(updateTaskDto, userId);
+		var result = await todoService.UpdateTask(updateTaskDto);
 
 		// Assert
 		Assert.True(result.Succeeded);
@@ -203,7 +203,7 @@ public class TodoServices
 			UserId = 1,
 			Title = "Sample Task",
 			Description = "Sample description",
-			IsComplete = false
+			IsCompleted = false
 		};
 		todoRepositoryMock.Setup(repo => repo.GetEntityById(todoId))
 			.ReturnsAsync(sampleTask);

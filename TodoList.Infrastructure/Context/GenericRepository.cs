@@ -32,7 +32,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IBase
 
 	public async Task<T> GetEntityById(long entityId)
 	{
-		return await _dbSet.SingleOrDefaultAsync(x => x.Id == entityId);
+		return await _dbSet.SingleOrDefaultAsync(x => x.Id == entityId && x.IsDeleted == false);
 	}
 
 	public IQueryable<T> GetQuery()

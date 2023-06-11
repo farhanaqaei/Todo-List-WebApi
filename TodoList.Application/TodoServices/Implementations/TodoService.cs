@@ -42,7 +42,7 @@ public class TodoService : ITodoService
 	{
 		Data = await _todoRepository.GetQuery().AsNoTracking()
 		.Where(x => x.IsDeleted == false)
-		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsComplete = x.IsComplete })
+		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
 		.ToListAsync()
 	};
 
@@ -50,7 +50,7 @@ public class TodoService : ITodoService
 	{
 		Data = await _todoRepository.GetQuery()
 		.Where(x => x.UserId == userId && x.IsDeleted == false)
-		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsComplete = x.IsComplete })
+		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
 		.ToListAsync()
 	};
 
@@ -58,20 +58,19 @@ public class TodoService : ITodoService
 	{
 		Data = await _todoRepository.GetQuery().AsNoTracking()
 		.Where(x => x.IsDeleted == false && EF.Functions.Like(x.User.FullName, $"%{userName}%"))
-		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsComplete = x.IsComplete })
+		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
 		.ToListAsync()
 	};
 
 	public async Task<ResultDTO<Todo>> GetTaskById(long id) => new ResultDTO<Todo> { Data = await _todoRepository.GetEntityById(id) };
 
-	public async Task<ResultDTO<Todo>> UpdateTask(UpdateTaskDTO input, long userId)
+	public async Task<ResultDTO<Todo>> UpdateTask(UpdateTaskDTO input)
 	{
 		var taskResult = await GetTaskById(input.Id);
 		var task = taskResult.Data;
-		if (task?.UserId != userId) return new ResultDTO<Todo> { Succeeded = false, Message = "forbidden action" };
 
 		task.IsDeleted = input.IsDeleted;
-		task.IsComplete = input.IsCompleted;
+		task.IsCompleted = input.IsCompleted;
 		task.Description = input.Description;
 		task.Title = input.Title;
 
@@ -81,12 +80,9 @@ public class TodoService : ITodoService
 		return new ResultDTO<Todo> { Succeeded = true, Message = "task updated successfully" };
 	}
 
-	public async Task<ResultDTO<Todo>> DeleteTask(long todoId, long userId)
+	public async Task<ResultDTO<Todo>> DeleteTask(long todoId)
 	{
-		var taskResult = await GetTaskById(todoId);
-		var task = taskResult.Data;
-		if (task?.UserId != userId) return new ResultDTO<Todo> { Succeeded = false, Message = "forbidden action" };
-		await _todoRepository.DeleteEntity(task.Id);
+		await _todoRepository.DeleteEntity(todoId);
 		await _todoRepository.SaveChanges();
 		return new ResultDTO<Todo> { Succeeded = true, Message = "task deleted successfully" };
 	}
