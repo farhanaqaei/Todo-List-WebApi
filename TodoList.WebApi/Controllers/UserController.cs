@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TodoList.Application.UserServices.Interfaces;
+using TodoList.Domain.Common.Enums;
 using TodoList.Domain.UserAggregate.Dtos;
 using TodoList.Domain.UserAggregate.Entities;
+using TodoList.WebApi.Extensions;
 
 namespace TodoList.WebApi.Controllers;
 
@@ -31,19 +33,27 @@ public class UserController : Controller
 	{
 		if (!ModelState.IsValid)
 		{
-			return BadRequest(ModelState);
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.WrongData.GetEnumName());
 		}
 
-		var result = await _userManager.CreateAsync(new User
+		try
 		{
-			UserName = input.Email,
-			FullName = input.FullName,
-			Email = input.Email
-		}, input.Password);
+			var result = await _userManager.CreateAsync(new User
+			{
+				UserName = input.Email,
+				FullName = input.FullName,
+				Email = input.Email
+			}, input.Password);
 
-		if (result.Succeeded) return Ok(result);
+			if (result.Succeeded) return Ok(result);
 
-		return BadRequest(ModelState);
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Errors.FirstOrDefault()?.ToString());
+		}
+		catch (Exception)
+		{
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
+		}
+
 	}
 
 	[HttpPost("login")]
@@ -51,30 +61,32 @@ public class UserController : Controller
 	{
 		if (!ModelState.IsValid)
 		{
-			return BadRequest(ModelState);
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.WrongData.GetEnumName());
 		}
 
-		var managedUser = await _userManager.FindByEmailAsync(input.Email);
-
-		if (managedUser == null)
+		try
 		{
-			return BadRequest("Bad credentials");
+			var user = await _userManager.FindByEmailAsync(input.Email);
+
+			if (user == null)
+			{
+				return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.WrongCredentials.GetEnumName());
+			}
+
+			var isPasswordValid = await _userManager.CheckPasswordAsync(user, input.Password);
+
+			if (!isPasswordValid)
+			{
+				return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.WrongCredentials.GetEnumName());
+			}
+
+			var accessToken = _tokenService.CreateToken(user);
+
+			return Ok(new LoginResultDTO { Token = accessToken });
 		}
-
-		var isPasswordValid = await _userManager.CheckPasswordAsync(managedUser, input.Password);
-
-		if (!isPasswordValid)
+		catch (Exception)
 		{
-			return BadRequest("Bad credentials");
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
 		}
-
-		var user = await _userService.GetUserByEmail(input.Email);
-
-		if (user.Succeeded == false)
-			return Unauthorized();
-
-		var accessToken = _tokenService.CreateToken(user.Data);
-
-		return Ok(new LoginResultDTO { Token = accessToken });
 	}
 }

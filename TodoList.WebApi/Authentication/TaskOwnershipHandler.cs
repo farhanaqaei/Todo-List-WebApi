@@ -21,42 +21,49 @@ public class TaskOwnershipHandler : AuthorizationHandler<TaskOwnershipRequiremen
 		var httpContext = _httpContextAccessor.HttpContext;
 		var httpMethod = httpContext.Request.Method;
 
-		if (httpMethod.Equals(HttpMethods.Patch, StringComparison.OrdinalIgnoreCase))
+		try
 		{
-			// Get the todoId from the route parameters
-			if (httpContext.Request.RouteValues.TryGetValue("todoId", out var todoIdValue) &&
-				long.TryParse(todoIdValue.ToString(), out var todoId))
+			if (httpMethod.Equals(HttpMethods.Patch, StringComparison.OrdinalIgnoreCase))
 			{
-				// Get todo from todoService
-				var todo = await _todoService.GetTaskById(todoId);
-
-				// Check if the user has permission to access the todo
-				if (todo.Data.UserId == context.User.GetUserId())
+				// Get the todoId from the route parameters
+				if (httpContext.Request.RouteValues.TryGetValue("todoId", out var todoIdValue) &&
+					long.TryParse(todoIdValue.ToString(), out var todoId))
 				{
-					context.Succeed(requirement);
-					return;
+					// Get todo from todoService
+					var todo = await _todoService.GetTaskById(todoId);
+
+					// Check if the user has permission to access the todo
+					if (todo.Data.UserId == context.User.GetUserId())
+					{
+						context.Succeed(requirement);
+						return;
+					}
 				}
 			}
-		}
-		else if (httpMethod.Equals(HttpMethods.Delete, StringComparison.OrdinalIgnoreCase))
-		{
-			// Get the todoId from the query string
-			if (httpContext.Request.Query.TryGetValue("todoId", out var todoIdValue) &&
-				long.TryParse(todoIdValue, out var todoId))
+			else if (httpMethod.Equals(HttpMethods.Delete, StringComparison.OrdinalIgnoreCase))
 			{
-				// Get todo from todoService
-				var todo = await _todoService.GetTaskById(todoId);
-
-				// Check if the user has permission to access the todo
-				if (todo.Data.UserId == context.User.GetUserId())
+				// Get the todoId from the query string
+				if (httpContext.Request.Query.TryGetValue("todoId", out var todoIdValue) &&
+					long.TryParse(todoIdValue, out var todoId))
 				{
-					context.Succeed(requirement);
-					return;
+					// Get todo from todoService
+					var todo = await _todoService.GetTaskById(todoId);
+
+					// Check if the user has permission to access the todo
+					if (todo.Data.UserId == context.User.GetUserId())
+					{
+						context.Succeed(requirement);
+						return;
+					}
 				}
 			}
-		}
 
-		context.Fail();
+			context.Fail();
+		}
+		catch (Exception)
+		{
+			context.Fail();
+		}
 
 	}
 }

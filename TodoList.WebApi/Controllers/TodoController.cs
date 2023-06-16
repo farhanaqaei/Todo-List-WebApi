@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoList.Application.TodoServices.Interfaces;
+using TodoList.Domain.Common.Enums;
 using TodoList.Domain.TodoAggregate.Dtos;
 using TodoList.WebApi.Extensions;
 
@@ -17,62 +18,91 @@ public class TodoController : Controller
 	}
 
 	[HttpPost("create-task"), Authorize]
-	public async Task<IActionResult> CreateTask([FromBody]CreateTaskDTO input)
+	public async Task<IActionResult> CreateTask([FromBody] CreateTaskDTO input)
 	{
 		try
 		{
 			var task = await _todoService.CreateTask(input, User.GetUserId());
-			if (task.Succeeded) return Ok(task.Message);
-			return BadRequest(task.Data);
+			switch (task.resultStatus)
+			{
+				case ResultStatus.Succeded:
+					return Ok(task.Message);
+				case ResultStatus.NotForUser:
+					return Problem(statusCode: StatusCodes.Status403Forbidden, title: task.Message);
+				default:
+					return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.WrongData.GetEnumName());
+			}
 		}
 		catch (Exception)
 		{
-			throw;
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
 		}
 	}
 
 	[HttpGet("get-tasks")]
-	public async Task<IActionResult> GetAllTasks([FromQuery]string? userName)
+	public async Task<IActionResult> GetAllTasks([FromQuery] string? userName)
 	{
-		if (userName != null) return Ok(await _todoService.GetTasksByUserName(userName));
-		return Ok(await _todoService.GetAllTasks());
+		try
+		{
+			if (userName != null) return Ok(await _todoService.GetTasksByUserName(userName));
+			return Ok(await _todoService.GetAllTasks());
+		}
+		catch (Exception)
+		{
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
+		}
 	}
 
 	[HttpGet("get-tasks-by-userid")]
-	public async Task<IActionResult> GetAllTasks([FromQuery]long userId)
+	public async Task<IActionResult> GetAllTasks([FromQuery] long userId)
 	{
-		return Ok(await _todoService.GetTasksByUserId(userId));
+		try
+		{
+			return Ok(await _todoService.GetTasksByUserId(userId));
+		}
+		catch (Exception)
+		{
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
+		}
 	}
 
 	[HttpPatch("update-task/{todoId}")]
 	[Authorize(Policy = "TaskOwnershipPolicy")]
-	public async Task<IActionResult> UpdateTask(long todoId, [FromBody]UpdateTaskDTO input)
+	public async Task<IActionResult> UpdateTask(long todoId, [FromBody] UpdateTaskDTO input)
 	{
 		try
 		{
 			var updatedTask = await _todoService.UpdateTask(input);
-			if (updatedTask.Succeeded) return Ok(updatedTask.Message);
-			return BadRequest(updatedTask.Data);
+
+			switch (updatedTask.resultStatus)
+			{
+				case ResultStatus.Succeded:
+					return Ok(updatedTask.Message);
+				case ResultStatus.NotFound:
+					return Problem(statusCode: StatusCodes.Status404NotFound, title: updatedTask.Message);
+				default:
+					return Problem(statusCode: StatusCodes.Status400BadRequest, title: updatedTask.Message);
+			}
 		}
 		catch (Exception)
 		{
-			throw;
-		}		
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
+		}
 	}
 
 	[HttpDelete("delete-task")]
 	[Authorize(Policy = "TaskOwnershipPolicy")]
-	public async Task<IActionResult> DeleteTask([FromQuery]long todoId)
+	public async Task<IActionResult> DeleteTask([FromQuery] long todoId)
 	{
 		try
 		{
 			var deletedTask = await _todoService.DeleteTask(todoId);
-			if (deletedTask.Succeeded) return Ok(deletedTask.Message);
-			return BadRequest(deletedTask.Data);
+			if (deletedTask.resultStatus == ResultStatus.Succeded) return Ok(deletedTask.Message);
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: deletedTask.Message);
 		}
 		catch (Exception)
 		{
-			throw;
+			return Problem(statusCode: StatusCodes.Status400BadRequest, title: ResultStatus.Failed.GetEnumName());
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using TodoList.Application.TodoServices.Interfaces;
 using TodoList.Domain.Common.Dtos;
+using TodoList.Domain.Common.Enums;
 using TodoList.Domain.Common.Interfaces;
 using TodoList.Domain.TodoAggregate.Dtos;
 using TodoList.Domain.TodoAggregate.Entities;
@@ -23,7 +24,7 @@ public class TodoService : ITodoService
 
 	public async Task<ResultDTO<GetTodoResult>> CreateTask(CreateTaskDTO input, long userId)
 	{
-		if (userId == 0) return new ResultDTO<GetTodoResult> { Succeeded = false, Message = "forbidden action" };
+		if (userId == 0) return new ResultDTO<GetTodoResult> { resultStatus = ResultStatus.NotForUser, Message = "forbidden action" };
 
 		var newTask = new Todo
 		{
@@ -35,38 +36,61 @@ public class TodoService : ITodoService
 		await _todoRepository.AddEntity(newTask);
 		await _todoRepository.SaveChanges();
 
-		return new ResultDTO<GetTodoResult> { Message = "task added successfully", Succeeded = true };
+		return new ResultDTO<GetTodoResult> { Message = "task added successfully" };
 	}
 
-	public async Task<ResultDTO<List<GetTodoResult>>> GetAllTasks() => new ResultDTO<List<GetTodoResult>>
+	public async Task<ResultDTO<List<GetTodoResult>>> GetAllTasks()
 	{
-		Data = await _todoRepository.GetQuery().AsNoTracking()
+		var tasks = await _todoRepository.GetQuery().AsNoTracking()
 		.Where(x => x.IsDeleted == false)
 		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
-		.ToListAsync()
-	};
+		.ToListAsync();
 
-	public async Task<ResultDTO<List<GetTodoResult>>> GetTasksByUserId(long userId) => new ResultDTO<List<GetTodoResult>>
+		if (!tasks.Any()) return new ResultDTO<List<GetTodoResult>> { Message = "there is no task yet" };
+
+		return new ResultDTO<List<GetTodoResult>> { Data = tasks };
+	}
+
+	public async Task<ResultDTO<List<GetTodoResult>>> GetTasksByUserId(long userId)
 	{
-		Data = await _todoRepository.GetQuery()
+		var task = await _todoRepository.GetQuery()
 		.Where(x => x.UserId == userId && x.IsDeleted == false)
-		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
-		.ToListAsync()
-	};
+		.Select(x => new GetTodoResult
+		{ Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
+		.ToListAsync();
 
-	public async Task<ResultDTO<List<GetTodoResult>>> GetTasksByUserName(string userName) => new ResultDTO<List<GetTodoResult>>
+		if (!task.Any()) return new ResultDTO<List<GetTodoResult>> { Message = "there is no task for this user" };
+
+		return new ResultDTO<List<GetTodoResult>> { Data = task };
+	}
+
+	public async Task<ResultDTO<List<GetTodoResult>>> GetTasksByUserName(string userName)
 	{
-		Data = await _todoRepository.GetQuery().AsNoTracking()
+		var task = await _todoRepository.GetQuery().AsNoTracking()
 		.Where(x => x.IsDeleted == false && EF.Functions.Like(x.User.FullName, $"%{userName}%"))
 		.Select(x => new GetTodoResult { Id = x.Id, Title = x.Title, Description = x.Description, UserId = x.UserId, IsCompleted = x.IsCompleted })
-		.ToListAsync()
-	};
+		.ToListAsync();
 
-	public async Task<ResultDTO<Todo>> GetTaskById(long id) => new ResultDTO<Todo> { Data = await _todoRepository.GetEntityById(id) };
+		if (!task.Any()) return new ResultDTO<List<GetTodoResult>> { Message = "there is no task" };
+
+		return new ResultDTO<List<GetTodoResult>> { Data = task };
+	}
+
+	public async Task<ResultDTO<Todo>> GetTaskById(long id)
+	{
+		var task = await _todoRepository.GetEntityById(id);
+
+		if (task == null) return new ResultDTO<Todo> { Message = "there is no task with this id" };
+
+		return new ResultDTO<Todo> { Data = task };
+	}
 
 	public async Task<ResultDTO<Todo>> UpdateTask(UpdateTaskDTO input)
 	{
 		var taskResult = await GetTaskById(input.Id);
+
+		if (taskResult.Data == null) return new ResultDTO<Todo> { resultStatus = ResultStatus.NotFound, Message = "there is no task with this id" };
+
 		var task = taskResult.Data;
 
 		task.IsDeleted = input.IsDeleted;
@@ -77,14 +101,14 @@ public class TodoService : ITodoService
 		_todoRepository.EditEntity(task);
 		await _todoRepository.SaveChanges();
 
-		return new ResultDTO<Todo> { Succeeded = true, Message = "task updated successfully" };
+		return new ResultDTO<Todo> { resultStatus = ResultStatus.Succeded, Message = "task updated successfully" };
 	}
 
 	public async Task<ResultDTO<Todo>> DeleteTask(long todoId)
 	{
 		await _todoRepository.DeleteEntity(todoId);
 		await _todoRepository.SaveChanges();
-		return new ResultDTO<Todo> { Succeeded = true, Message = "task deleted successfully" };
+		return new ResultDTO<Todo> { resultStatus = ResultStatus.Succeded, Message = "task deleted successfully" };
 	}
 
 	public async ValueTask DisposeAsync()
